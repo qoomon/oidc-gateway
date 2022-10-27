@@ -23,5 +23,5 @@ http --verify=no https://127.0.0.1/foo "Proxy-Authorization: Bearer $ACTIONS_ID_
 
 ## Development
 ````shell
- ls * | entr -r sh -c  'docker build -t qoomon/github-action-oicd-proxy . && docker run --name github-action-oicd-proxy --rm -p 80:80 -p 443:443 qoomon/github-action-oicd-proxy'
+ ls * | entr -r sh -c  'docker build -t qoomon/github-actions-gateway . && docker run --name github-actions-gateway --rm -p 80:80 -p 443:443 qoomon/github-actions-gateway'
 ````
