@@ -20,3 +20,8 @@ curl --insecure https://127.0.0.1/foo -H "Proxy-Authorization: Bearer $ACTIONS_I
 
 http --verify=no https://127.0.0.1/foo "Proxy-Authorization: Bearer $ACTIONS_ID_TOKEN"
 ```
+
+## Development
+````shell
+ ls * | entr -r sh -c  'docker build -t qoomon/github-action-oicd-proxy . && docker run --name github-action-oicd-proxy --rm -p 80:80 -p 443:443 qoomon/github-action-oicd-proxy'
+````
