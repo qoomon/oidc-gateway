@@ -2,7 +2,7 @@
 local token, err = require("resty.openidc").bearer_jwt_verify({
     discovery = "https://token.actions.githubusercontent.com/.well-known/openid-configuration",
     token_signing_alg_values_expected = { "RS256" },
-    auth_accept_token_as_header_name = "Proxy-Authorization",
+    auth_accept_token_as_header_name = "Authorization",
     -- iat_slack = math.huge, -- for DEVELOPMENT purpose only
 })
 
