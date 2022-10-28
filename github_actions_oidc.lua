@@ -1,5 +1,5 @@
--- call bearer_jwt_verify for OAuth 2.0 JWT validation
-local token, err = require("resty.openidc").bearer_jwt_verify({
+local openidc = require("resty.openidc")
+local token, err = openidc.bearer_jwt_verify({
     discovery = "https://token.actions.githubusercontent.com/.well-known/openid-configuration",
     token_signing_alg_values_expected = { "RS256" },
     auth_accept_token_as_header_name = "Authorization",
