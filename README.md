@@ -4,8 +4,8 @@
 * clone repository
 * adjust [`nginx.conf`](nginx.conf)
 * adjust [`github_actions_oidc.lua`](github_actions_oidc.lua)
-* build docker image `docker build -t qoomon/github-actions-gateway .`
-* start docker container `docker run --name github-actions-gateway --rm -p 443:443 qoomon/github-actions-gateway`
+* build docker image `docker build -t local/github-actions-gateway .`
+* start docker container `docker run --name github-actions-gateway --rm -p 443:443 local/github-actions-gateway`
 
 #### Local Development
 ##### Start Proxy Server
