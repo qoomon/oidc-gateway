@@ -12,7 +12,7 @@
 ```shell  
 docker build -t local/github-actions-gateway .
 docker run --name github-actions-gateway --rm -p 443:443 local/github-actions-gateway
-# or
+# or watch for changes and rebuild and run aitomaticaly with entr (https://github.com/eradman/entr)
 ls * | entr -r sh -c '
   docker build -t local/github-actions-gateway . \
   && docker run --name github-actions-gateway --rm -p 80:80 -p 443:443 local/github-actions-gateway
