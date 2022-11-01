@@ -1,22 +1,24 @@
 local openidc = require("resty.openidc")
 
-local token, err = openidc.bearer_jwt_verify({
-    auth_accept_token_as_header_name = "Authorization",
+local auth_token_header_name = "Authorization"
+local token, token_err = openidc.bearer_jwt_verify({
+    auth_accept_token_as_header_name = auth_token_header_name,
     discovery = "https://token.actions.githubusercontent.com/.well-known/openid-configuration",
     token_signing_alg_values_expected = { "RS256" },
     -- iat_slack = math.huge, -- for DEVELOPMENT purpose only
 })
+-- Remove header to avoid leaking token to upstream
+ngx.req.clear_header(auth_token_header_name)
+-- Set $remote_identity to be used within nginx config e.g. log_format or proxy_set_header X-Identity $remote_identity;
+ngx.var.remote_identity =  token and token.sub or "-"
 
-if err or not token then
+if token_err then
     ngx.status = ngx.HTTP_UNAUTHORIZED
-    ngx.say(err and err or "no access_token provided")
+    ngx.say(token_err)
     return ngx.exit(ngx.status)
 end
 
--- Set nginx variables --
-ngx.var.remote_identity = token.sub
-
--- Check access conditions --
+-- Check access conditions ----------------------------------------------------
 -- TODO Adjust following conditions to your environment
 local permitted = true
 -- permitted = permitted and token.aud == "example.com"
@@ -28,6 +30,3 @@ if not permitted then
     ngx.say("Forbidden")
     return ngx.exit(ngx.status)
 end
-
--- Adjust headers ---
-ngx.req.clear_header("Authorization")
