@@ -1,8 +1,8 @@
 local openidc = require("resty.openidc")
 
 local auth_header_name = "Authorization"
-local auth_header = ngx.req.get_headers()[auth_header_name]
-local first_auth_header, other_auth_headers = auth_header:match("^([^,]*),? *(.*)$") or ""
+local auth_header = ngx.req.get_headers()[auth_header_name] or ""
+local first_auth_header, other_auth_headers = auth_header:match("^([^,]*),? *(.*)$")
 -- replace auth header with first value
 ngx.req.set_header(auth_header_name, first_auth_header)
 local token, token_err = openidc.bearer_jwt_verify({
