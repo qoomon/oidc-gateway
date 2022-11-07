@@ -1,16 +1,20 @@
 local openidc = require("resty.openidc")
 
-local auth_token_header_name = "Authorization"
+local auth_header_name = "Authorization"
+local auth_header = ngx.req.get_headers()[auth_header_name]
+local first_auth_header, other_auth_headers = auth_header:match("^([^,]*),? *(.*)$")
+-- replace auth header with first value
+ngx.req.set_header(auth_header_name, first_auth_header)
 local token, token_err = openidc.bearer_jwt_verify({
-    auth_accept_token_as_header_name = auth_token_header_name,
+    auth_accept_token_as_header_name = auth_header_name,
     discovery = "https://token.actions.githubusercontent.com/.well-known/openid-configuration",
     token_signing_alg_values_expected = { "RS256" },
     -- iat_slack = math.huge, -- for DEVELOPMENT purpose only
 })
--- Remove header to avoid leaking token to upstream
-ngx.req.clear_header(auth_token_header_name)
+-- Remove first auth header to avoid leaking token to upstream
+ngx.req.set_header(auth_header_name, other_auth_headers)
 -- Set $remote_identity to be used within nginx config e.g. log_format or proxy_set_header X-Identity $remote_identity;
-ngx.var.remote_identity =  token and token.sub or "-"
+ngx.var.remote_identity = token and token.sub or "-"
 
 if token_err then
     ngx.status = ngx.HTTP_UNAUTHORIZED
