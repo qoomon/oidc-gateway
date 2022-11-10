@@ -1,5 +1,5 @@
 import {Construct} from 'constructs';
-import {Cluster, ContainerImage, LogDrivers,} from "aws-cdk-lib/aws-ecs";
+import {Cluster, ContainerImage, FargateTaskDefinition, LogDrivers,} from "aws-cdk-lib/aws-ecs";
 import {Fn, Stack, StackProps} from "aws-cdk-lib";
 import {ApplicationLoadBalancedFargateService} from "aws-cdk-lib/aws-ecs-patterns";
 import {Vpc} from "aws-cdk-lib/aws-ec2";
@@ -29,14 +29,26 @@ export class OIDCGatewayStack extends Stack {
             platform: Platform.LINUX_AMD64
         });
 
+        const taskDefinition = new FargateTaskDefinition(this, 'github-actions-gateway-task-definition');
+        taskDefinition.addContainer('github-actions-gateway-container', {
+            image: ContainerImage.fromDockerImageAsset(image),
+            readonlyRootFilesystem: true,
+            portMappings: [{hostPort: 443, containerPort: 443}],
+            logging: LogDrivers.awsLogs({
+                streamPrefix: id,
+                logRetention: RetentionDays.ONE_DAY,
+            }),
+        })
+
+        const domainZone = HostedZone.fromLookup(this, 'hosted-zone', {
+            domainName: 'example.com', // TODO replace with your domain name
+        })
         const service = new ApplicationLoadBalancedFargateService(this, 'oidc-gateway-service', {
             publicLoadBalancer: true,
             openListener: true,
             protocol: ApplicationProtocol.HTTPS,
-            domainName: 'target.example.com', // TODO replace with your domain name
-            domainZone: HostedZone.fromLookup(this, 'hosted-zone', {
-                domainName: 'example.com', // TODO replace with your domain name
-            }),
+            domainZone,
+            domainName: `app.${domainZone.zoneName}`, // TODO replace with your subdomain name
             redirectHTTP: true,
 
             cluster: ecsCluster,
@@ -44,14 +56,7 @@ export class OIDCGatewayStack extends Stack {
             memoryLimitMiB: 1024,
             cpu: 512,
             targetProtocol: ApplicationProtocol.HTTPS,
-            taskImageOptions: {
-                image: ContainerImage.fromDockerImageAsset(image),
-                containerPort: 443,
-                logDriver: LogDrivers.awsLogs({
-                    streamPrefix: id,
-                    logRetention: RetentionDays.ONE_DAY,
-                }),
-            },
+            taskDefinition,
         });
         service.targetGroup.configureHealthCheck({
             healthyHttpCodes: "401",
