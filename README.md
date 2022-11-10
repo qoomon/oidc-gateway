@@ -5,17 +5,17 @@
 * adjust [`nginx.conf`](nginx.conf)
 * adjust [`github_actions_oidc.lua`](github_actions_oidc.lua)
 * build docker image `docker build -t local/github-actions-gateway .`
-* start docker container `docker run --name github-actions-gateway --rm -p 443:443 local/github-actions-gateway`
+* start docker container `docker run --name github-actions-gateway --rm -p 443:8443 local/github-actions-gateway`
 
 #### Local Development
 ##### Start Proxy Server
 ```shell  
 docker build -t local/github-actions-gateway .
-docker run --name github-actions-gateway --rm -p 443:443 local/github-actions-gateway
+docker run --name github-actions-gateway --rm -p 443:8443 local/github-actions-gateway
 # or watch for changes and rebuild and run automatically with entr (https://github.com/eradman/entr)
 ls * | entr -r sh -c '
   docker build -t local/github-actions-gateway . \
-  && docker run --name github-actions-gateway --rm -p 80:80 -p 443:443 local/github-actions-gateway
+  && docker run --name github-actions-gateway --rm -p 443:8443 local/github-actions-gateway
 '
 ```
 ##### Call Proxy Server

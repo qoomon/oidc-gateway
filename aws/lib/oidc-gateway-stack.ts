@@ -29,17 +29,6 @@ export class OIDCGatewayStack extends Stack {
             platform: Platform.LINUX_AMD64
         });
 
-        const taskDefinition = new FargateTaskDefinition(this, 'github-actions-gateway-task-definition');
-        taskDefinition.addContainer('github-actions-gateway-container', {
-            image: ContainerImage.fromDockerImageAsset(image),
-            readonlyRootFilesystem: true,
-            portMappings: [{hostPort: 443, containerPort: 443}],
-            logging: LogDrivers.awsLogs({
-                streamPrefix: id,
-                logRetention: RetentionDays.ONE_DAY,
-            }),
-        })
-
         const domainZone = HostedZone.fromLookup(this, 'hosted-zone', {
             domainName: 'example.com', // TODO replace with your domain name
         })
@@ -56,8 +45,18 @@ export class OIDCGatewayStack extends Stack {
             memoryLimitMiB: 1024,
             cpu: 512,
             targetProtocol: ApplicationProtocol.HTTPS,
-            taskDefinition,
+            taskImageOptions: {
+                image: ContainerImage.fromDockerImageAsset(image),
+                containerPort: 8443,
+                logDriver: LogDrivers.awsLogs({
+                    streamPrefix: id,
+                    logRetention: RetentionDays.ONE_MONTH,
+                }),
+            },
         });
+        // service.loadBalancer.setAttribute('deletion_protection.enabled', 'true')
+        service.loadBalancer.setAttribute('routing.http.drop_invalid_header_fields.enabled', 'true')
+        service.targetGroup.setAttribute('deregistration_delay.timeout_seconds', '0')
         service.targetGroup.configureHealthCheck({
             healthyHttpCodes: "401",
         });
