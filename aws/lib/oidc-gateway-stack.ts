@@ -15,12 +15,12 @@ export class OIDCGatewayStack extends Stack {
         super(scope, id, props);
 
         const vpc = Vpc.fromLookup(this, 'vpc', {
-            vpcName: 'YOUR_VPC_NAME', // TODO replace with your VPC name
+            vpcName: 'YOUR_VPC_NAME', // TODO adjust to your environment
         })
 
         const ecsCluster = Cluster.fromClusterAttributes(this, 'cluster', {
             vpc: vpc,
-            clusterName: Fn.importValue(`YOUR_ECS_CLUSTER_NAME`),
+            clusterName: Fn.importValue(`YOUR_ECS_CLUSTER_NAME`), // TODO adjust to your environment
             securityGroups: [], // securityGroups are not needed, therefore it can be just empty,
         })
 
@@ -30,14 +30,14 @@ export class OIDCGatewayStack extends Stack {
         });
 
         const domainZone = HostedZone.fromLookup(this, 'hosted-zone', {
-            domainName: 'example.com', // TODO replace with your domain name
+            domainName: 'example.com', // TODO adjust to your environment
         })
         const service = new ApplicationLoadBalancedFargateService(this, 'oidc-gateway-service', {
             publicLoadBalancer: true,
             openListener: true,
             protocol: ApplicationProtocol.HTTPS,
             domainZone,
-            domainName: `app.${domainZone.zoneName}`, // TODO replace with your subdomain name
+            domainName: `app.${domainZone.zoneName}`, // TODO adjust to your environment
             redirectHTTP: true,
 
             cluster: ecsCluster,
